@@ -14,12 +14,12 @@ from sklearn.decomposition import TruncatedSVD
 from scipy import sparse
 from joblib import Parallel, delayed
 import numpy as np
+import chardet
 
 st.title("Text Classification and Clustering")
 
 # Load stopwords
-with open("stopwords.txt", "r") as file:
-    stop_words_list = file.read().splitlines()
+stop_words_list = ['a', 'is', 'the', 'of', 'all', 'and', 'to', 'can', 'be', 'as', 'once', 'for', 'at', 'am', 'are', 'has', 'have', 'had', 'up', 'his', 'her', 'in', 'on', 'no', 'we', 'do']
 
 # Load documents and labels
 documents = {}
@@ -85,29 +85,35 @@ def evaluate_clustering(y_true, clusters):
     return purity, silhouette, rand_index
 
 # Streamlit GUI
-option = st.sidebar.selectbox(
-    'Choose an option:',
-    ['Home', 'Test Document', 'Evaluate']
-)
 
-if option == 'Home':
-    st.write("Welcome to Text Classification and Clustering")
-    st.write("Select an option from the sidebar.")
+st.write("Evaluation Metrics:")
+accuracy, precision, recall, f1 = evaluate_classification(y_test, knn.predict(X_test))
+purity, silhouette, rand_index = evaluate_clustering(y, clusters)
+st.write(f"Classification - Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1: {f1}")
+st.write(f"Clustering - Purity: {purity}, Silhouette Score: {silhouette}, Rand Index: {rand_index}")
 
-elif option == 'Test Document':
-    st.write("Enter a new document to classify:")
-    new_doc = st.text_area('Text:')
-    if st.button('Classify'):
-        new_processed_doc = preprocess(27, new_doc)
-        new_tfidf_matrix = tfidf_vectorizer.transform([" ".join(new_processed_doc[1])])
-        new_tfidf_matrix_reduced = svd.transform(new_tfidf_matrix)
-        new_y_pred = knn.predict(new_tfidf_matrix_reduced)
-        st.write(f"Predicted Class: {new_y_pred[0]}")
+st.subheader("Test Document")
+st.write("Enter a new document to classify or upload a txt file:")
 
-elif option == 'Evaluate':
-    st.write("Evaluation Metrics:")
-    accuracy, precision, recall, f1 = evaluate_classification(y_test, knn.predict(X_test))
-    purity, silhouette, rand_index = evaluate_clustering(y, clusters)
-    st.write(f"Classification - Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1: {f1}")
-    st.write(f"Clustering - Purity: {purity}, Silhouette Score: {silhouette}, Rand Index: {rand_index}")
+# Allow user to input text or upload file
+text_input = st.text_area("Text Input")
+file_upload = st.file_uploader("Upload a txt file", type="txt")
+
+if text_input:
+    new_doc = text_input
+elif file_upload is not None:
+    raw_data = file_upload.getvalue()
+    encoding_result = chardet.detect(raw_data)
+    file_encoding = encoding_result['encoding']
+    new_doc = raw_data.decode(file_encoding)
+else:
+    new_doc = None
+
+if new_doc is not None:
+    st.write("Predicted Class:")
+    new_processed_doc = preprocess(27, new_doc)
+    new_tfidf_matrix = tfidf_vectorizer.transform([" ".join(new_processed_doc[1])])
+    new_tfidf_matrix_reduced = svd.transform(new_tfidf_matrix)
+    new_y_pred = knn.predict(new_tfidf_matrix_reduced)
+    st.write(f"{new_y_pred[0]}")
 
