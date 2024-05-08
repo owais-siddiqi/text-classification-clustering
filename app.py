@@ -48,7 +48,7 @@ documents = {}
 for i in range(1, 27):
     file_path = f"extracted_papers/{i}.txt"
     if os.path.exists(file_path):
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             documents[i] = file.read()
 
 # convert tf-idf scores to sparse matrix
