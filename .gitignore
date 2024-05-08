@@ -1,6 +1,5 @@
 *.npy
-test.py
 *.json
-/test
+/joblib_files
 text_class.py
 text_cluster.py
