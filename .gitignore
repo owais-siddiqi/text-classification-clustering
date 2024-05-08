@@ -1,5 +1,0 @@
-*.npy
-*.json
-/joblib_files
-text_class.py
-text_cluster.py
