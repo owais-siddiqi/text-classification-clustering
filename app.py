@@ -9,6 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import adjusted_rand_score
 import numpy as np
+import chardet
 
 # loading trained model and other files
 knn = joblib.load("joblib_files/knn_model.joblib")
@@ -44,11 +45,18 @@ labels = {
     26: "Feature Selection"
 }
 
+def detect_encoding(file_path):
+    with open(file_path, "rb") as file:
+        raw_data = file.read()
+        result = chardet.detect(raw_data)
+        return result['encoding']
+    
 documents = {}
 for i in range(1, 27):
     file_path = f"extracted_papers/{i}.txt"
+    encoding = detect_encoding(file_path)
     if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(file_path, "r", encoding=encoding) as file:
             documents[i] = file.read()
 
 # convert tf-idf scores to sparse matrix
